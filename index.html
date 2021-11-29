@@ -1,0 +1,91 @@
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Native PDF Reader</title>
+    <style>
+        #pagination {
+            display: flex;
+            flex-wrap: wrap;
+            position: sticky;
+            top: 0;
+            background: rgba(255,255,255,0.9);
+            justify-content: center;
+            padding: 15px;
+        }
+
+        #pagination a {
+            margin: 5px;
+            display: block;
+            text-decoration: none;
+        }
+
+        #main {
+            width: 100%;
+            overflow-x: auto;
+        }
+    </style>
+</head>
+<body>
+    
+    <div id="pagination"></div>
+    <div id="main"></div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.11.338/pdf.min.js" integrity="sha512-t2JWqzirxOmR9MZKu+BMz0TNHe55G5BZ/tfTmXMlxpUY8tsTo3QMD27QGoYKZKFAraIPDhFv56HLdN11ctmiTQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
+    <script>
+        let allPages = 0;
+        const container = document.getElementById("main")
+        const containerPagination = document.getElementById("pagination")
+        const loadingTask = pdfjsLib.getDocument("./example.pdf")
+
+        loadingTask
+            .promise
+            .then((pdf) => {
+                allPages = pdf._pdfInfo.numPages
+                console.log(allPages)
+
+                for (let i = 1; i <= allPages; i++) {
+                    pdf.getPage(i).then(page => {
+                        const scale = 1.5
+                        const viewport = page.getViewport({ scale })
+                        const outputScale = window.devicePixelRatio || 1
+                        const canvas = document.createElement("canvas")
+                        const context = canvas.getContext("2d")
+
+                        canvas.width =  Math.floor(viewport.width * outputScale)
+                        canvas.height = Math.floor(viewport.height * outputScale);
+                        canvas.style.width = Math.floor(viewport.width) + "px";
+                        canvas.style.height =  Math.floor(viewport.height) + "px";
+                        canvas.style.display = "block";
+                        canvas.style.margin =  "auto";
+                        canvas.id = page._pageIndex
+
+                        const transform = outputScale !== 1 ? [outputScale, 0, 0, outputScale, 0, 0] : null
+
+                        const renderContext = {
+                            canvasContext: context,
+                            transform: transform,
+                            viewport: viewport
+                        };
+                        page.render(renderContext);
+
+                        container.append(canvas)
+                    })
+
+                }
+
+
+                for (let i = 0; i < allPages; i++) {
+                    const anchor = document.createElement("a")
+                    const num = i
+                    anchor.href = `#${i}`
+                    anchor.textContent = num + 1
+                    containerPagination.append(anchor)
+                }
+                                    
+            })
+    </script>
+</body>
+</html>
