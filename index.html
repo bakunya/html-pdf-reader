@@ -63,37 +63,36 @@
 
         loadingTask
             .promise
-            .then((pdf) => {
+            .then(async (pdf) => {
                 allPages = pdf._pdfInfo.numPages
-                console.log(allPages)
 
                 for (let i = 1; i <= allPages; i++) {
-                    pdf.getPage(i).then(page => {
-                        const scale = 1.5
-                        const viewport = page.getViewport({ scale })
-                        const outputScale = window.devicePixelRatio || 1
-                        const canvas = document.createElement("canvas")
-                        const context = canvas.getContext("2d")
+                    const page = await pdf.getPage(i)
 
-                        canvas.width =  Math.floor(viewport.width * outputScale)
-                        canvas.height = Math.floor(viewport.height * outputScale);
-                        canvas.style.width = Math.floor(viewport.width) + "px";
-                        canvas.style.height =  Math.floor(viewport.height) + "px";
-                        canvas.style.display = "block";
-                        canvas.style.margin =  "auto";
-                        canvas.id = page._pageIndex
+                    const scale = 1.5
+                    const viewport = page.getViewport({ scale })
+                    const outputScale = window.devicePixelRatio || 1
+                    const canvas = document.createElement("canvas")
+                    const context = canvas.getContext("2d")
 
-                        const transform = outputScale !== 1 ? [outputScale, 0, 0, outputScale, 0, 0] : null
+                    canvas.width =  Math.floor(viewport.width * outputScale)
+                    canvas.height = Math.floor(viewport.height * outputScale);
+                    canvas.style.width = Math.floor(viewport.width) + "px";
+                    canvas.style.height =  Math.floor(viewport.height) + "px";
+                    canvas.style.display = "block";
+                    canvas.style.margin =  "auto";
+                    canvas.id = page._pageIndex
 
-                        const renderContext = {
-                            canvasContext: context,
-                            transform: transform,
-                            viewport: viewport
-                        };
-                        page.render(renderContext);
+                    const transform = outputScale !== 1 ? [outputScale, 0, 0, outputScale, 0, 0] : null
 
-                        container.append(canvas)
-                    })
+                    const renderContext = {
+                        canvasContext: context,
+                        transform: transform,
+                        viewport: viewport
+                    };
+                    page.render(renderContext);
+
+                    container.append(canvas)
 
                 }
 
